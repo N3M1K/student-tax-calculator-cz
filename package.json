@@ -1,12 +1,13 @@
 {
-  "name": "app",
-  "version": "1.0.50",
+  "name": "student-tax-calculator-cz",
+  "version": "1.0.0",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "elysia": "latest"
+    "@libsql/client": "^0.17.0",
+    "elysia": "^1.4.22"
   },
   "devDependencies": {
     "bun-types": "latest"

@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student OSVČ Tax Guard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <style>
+      [x-cloak] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 min-h-screen font-sans text-gray-900">
+    <div
+      class="container mx-auto px-4 py-8"
+      x-data="{ 
+        profit: {{profitRaw}}, 
+        limit: {{limitRaw}},
+        get percent() { return Math.min((this.profit / this.limit) * 100, 100); },
+        get color() { 
+            if (this.percent >= 100) return 'bg-red-600';
+            if (this.percent >= 80) return 'bg-orange-500';
+            return 'bg-green-500';
+        }
+    }"
+    >
+      <header class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Student OSVČ Tax Guard</h1>
+        <p class="text-gray-600">
+          Sledujte své příjmy a limit pro sociální pojištění.
+        </p>
+      </header>
+
+      <!-- Stats Overview -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Revenue Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase">
+            Příjmy (Rok {{year}})
+          </h3>
+          <p class="text-2xl font-bold mt-2">{{revenue}} Kč</p>
+        </div>
+
+        <!-- Profit Card -->
+        <div
+          class="bg-white p-6 rounded-lg shadow-md border-l-4"
+          :class="color.replace('bg-', 'border-')"
+        >
+          <h3 class="text-sm font-semibold text-gray-500 uppercase">
+            Dílčí základ daně (Zisk)
+          </h3>
+          <p class="text-2xl font-bold mt-2">{{profit}} Kč</p>
+          <div class="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+            <div
+              class="h-2.5 rounded-full transition-all duration-500"
+              :class="color"
+              :style="'width: ' + percent + '%'"
+            ></div>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">Limit: {{limit}} Kč</p>
+        </div>
+
+        <!-- Social Security Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase">
+            Sociální pojištění
+          </h3>
+          <p
+            class="text-2xl font-bold mt-2"
+            :class="percent >= 100 ? 'text-red-600' : 'text-green-600'"
+          >
+            {{socialSecurityMsg}}
+          </p>
+          <p class="text-xs text-gray-500 mt-1" x-show="percent >= 100">
+            Limit překročen! Musíte platit zálohy.
+          </p>
+          <p class="text-xs text-gray-500 mt-1" x-show="percent < 100">
+            Zatím neplatíte (student).
+          </p>
+        </div>
+
+        <!-- Health Insurance Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase">
+            Zdravotní pojištění (Odhad)
+          </h3>
+          <p class="text-2xl font-bold mt-2">{{healthInsurance}} Kč</p>
+          <p class="text-xs text-gray-500 mt-1">13.5% z vyměřovacího základu</p>
+        </div>
+      </div>
+
+      <!-- Invoice Management -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Add Invoice Form -->
+        <div class="lg:col-span-1">
+          <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold mb-4">Nová faktura</h2>
+            <form
+              hx-post="/invoices"
+              hx-target="body"
+              hx-swap="outerHTML"
+              class="space-y-4"
+            >
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Datum</label
+                >
+                <input
+                  type="date"
+                  name="date"
+                  required
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Částka (Kč)</label
+                >
+                <input
+                  type="number"
+                  name="amount"
+                  required
+                  min="1"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Klient / Popis</label
+                >
+                <input
+                  type="text"
+                  name="client_name"
+                  required
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Přidat fakturu
+              </button>
+            </form>
+          </div>
+
+          <!-- Settings (Mini) -->
+          <div class="bg-white p-6 rounded-lg shadow-md mt-6">
+            <h2 class="text-xl font-bold mb-4">Nastavení</h2>
+            <form
+              hx-post="/settings"
+              hx-target="body"
+              hx-swap="outerHTML"
+              class="space-y-4"
+            >
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Rozhodná částka (Limit)</label
+                >
+                <input
+                  type="number"
+                  name="social_limit_amount"
+                  value="{{limit}}"
+                  required
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none"
+              >
+                Aktualizovat limit
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Invoice List -->
+        <div class="lg:col-span-2">
+          <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold mb-4">Seznam faktur</h2>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Datum
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Klient
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Částka
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Akce
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  class="bg-white divide-y divide-gray-200"
+                  id="invoice-list"
+                >
+                  {{invoiceRows}}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
