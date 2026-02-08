@@ -1,6 +1,10 @@
 {
   "name": "student-tax-calculator-cz",
   "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/n3m1k/student-tax-calculator-cz.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun run --watch src/index.ts"
